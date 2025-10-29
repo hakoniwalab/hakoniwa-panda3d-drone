@@ -3,6 +3,15 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+.DS_Store
+
+# log
+*.out
+*.err
+
+# models
+models/
+
 # C extensions
 *.so
 

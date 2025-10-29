@@ -1,0 +1,3 @@
+panda3d>=1.10.14
+panda3d-gltf
+hakoniwa-pdu>=1.3.1
