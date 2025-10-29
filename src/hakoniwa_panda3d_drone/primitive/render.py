@@ -38,6 +38,7 @@ class RenderEntity:
 
     def load_model(self, loader, path: str, copy: bool = True):
         """loader.loadModel(path) して set_model までを一手に。"""
+        print(f"Loading model from: {path}")
         model_np = loader.loadModel(path, noCache=True)
         self._set_model(model_np, copy=copy)
 

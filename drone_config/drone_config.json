@@ -1,27 +1,27 @@
 {
   "name": "drone_model",
-  "model": "/Users/tmori/project/oss/work/panda3d/hakoniwa-panda3d-drone/models/drone.glb",
+  "model": "../models/drone.glb",
   "pos": [0, 0, 0.01],
   "hpr": [180, 180, 0],
   "children": [
     {
       "name": "drone_rotor1",
-      "model": "/Users/tmori/project/oss/work/panda3d/hakoniwa-panda3d-drone/models/prop-1.glb",
+      "model": "../models/prop-1.glb",
       "pos": [0.062, 0.065, -0.01]
     },
     {
       "name": "drone_rotor2",
-      "model": "/Users/tmori/project/oss/work/panda3d/hakoniwa-panda3d-drone/models/prop-1.glb",
+      "model": "../models/prop-1.glb",
       "pos": [0.062, -0.025, -0.01]
     },
     {
       "name": "drone_rotor3",
-      "model": "/Users/tmori/project/oss/work/panda3d/hakoniwa-panda3d-drone/models/prop-2.glb",
+      "model": "../models/prop-2.glb",
       "pos": [-0.062, -0.025, -0.01]
     },
     {
       "name": "drone_rotor4",
-      "model": "/Users/tmori/project/oss/work/panda3d/hakoniwa-panda3d-drone/models/prop-1.glb",
+      "model": "../models/prop-1.glb",
       "pos": [-0.062, 0.065, -0.01]
     }
   ]

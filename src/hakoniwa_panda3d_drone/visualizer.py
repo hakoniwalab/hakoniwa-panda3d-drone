@@ -8,6 +8,7 @@ from hakoniwa_panda3d_drone.core.camera import OrbitCamera
 from hakoniwa_panda3d_drone.core.light import LightRig
 import panda3d
 import json
+from pathlib import Path
 
 print(f"--- Running Panda3D Version: {panda3d.__version__} ---")
 
@@ -18,6 +19,7 @@ class App(ShowBase):
 
         self.render.setShaderAuto()
 
+        self.drone_config_path = drone_config_path
         with open(drone_config_path, 'r') as f:
             config = json.load(f)
 
@@ -68,9 +70,18 @@ class App(ShowBase):
         )
         self.taskMgr.add(self.update_text, "update_text_task")
 
+    def _resolve_model_path(self, path: str) -> str:
+        p = Path(path)
+        if p.is_absolute():
+            return str(p)
+        base = Path.cwd()
+        rp = str((base / p).resolve())
+        print(f"Resolved model path: {rp}")
+        return rp
+
     def _create_entity_from_config(self, config, copy=False):
         entity = RenderEntity(self.render, config['name'])
-        entity.load_model(self.loader, config['model'], copy=copy)
+        entity.load_model(self.loader, self._resolve_model_path(config['model']), copy=copy)
         if 'pos' in config:
             entity.set_pos(*config['pos'])
         if 'hpr' in config:

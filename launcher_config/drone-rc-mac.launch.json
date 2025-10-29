@@ -29,7 +29,7 @@
     {
       "name": "environment",
       "activation_timing": "before_start",
-      "command": "/Users/tmori/.pyenv/versions/3.12.3/bin/python",
+      "command": "${PYTHON_PATH}",
       "args": [
         "-m",
         "hakoniwa_envsim.envasset",
@@ -42,7 +42,7 @@
     {
       "name": "Panda3dSimulator",
       "activation_timing": "after_start",
-      "command": "/Users/tmori/.pyenv/versions/3.12.3/bin/python",
+      "command": "${PYTHON_PATH}",
       "args": [
         "-m",
         "hakoniwa_panda3d_drone.hako_asset",
@@ -56,7 +56,7 @@
     {
       "name": "remote_controller",
       "activation_timing": "after_start",
-      "command": "/Users/tmori/.pyenv/versions/3.12.3/bin/python",
+      "command": "${PYTHON_PATH}",
       "args": [
         "-m",
         "rc-custom",
