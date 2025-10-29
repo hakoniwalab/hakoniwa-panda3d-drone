@@ -4,6 +4,9 @@
 
 このプロジェクトは、[箱庭ドローン](https://hakoniwa-lab.net/products/drone/)シミュレーションのための3Dビジュアライザです。Panda3Dエンジンを使用し、シミュレーション中のドローンの位置、姿勢、ローターの回転などをリアルタイムに可視化します。
 
+[![Panda3D Collision Demo](https://img.youtube.com/vi/zH4pmaqPFZ0/hqdefault.jpg)](https://www.youtube.com/watch?v=zH4pmaqPFZ0)
+
+
 ## 主な機能
 
 *   箱庭ドローンの物理エンジンと連携したドローンのリアルタイム3D表示
