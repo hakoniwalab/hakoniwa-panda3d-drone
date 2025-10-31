@@ -9,6 +9,7 @@ from hakoniwa_panda3d_drone.core.light import LightRig
 import panda3d
 import json
 from pathlib import Path
+from panda3d.core import Camera, NodePath, PerspectiveLens, DisplayRegion, LineSegs
 
 print(f"--- Running Panda3D Version: {panda3d.__version__} ---")
 
@@ -17,6 +18,9 @@ class App(ShowBase):
         super().__init__()
         self.disableMouse()
 
+        self.background_color = (0.7, 0.7, 0.7, 1)
+
+        self.set_background_color(*self.background_color)
         self.render.setShaderAuto()
 
         self.drone_config_path = drone_config_path
@@ -35,7 +39,8 @@ class App(ShowBase):
 
         # 床
         floor = RenderEntity(self.render, "floor")
-        floor.set_polygon(Plane(size=5.0))
+        plane = Plane(size=5.0, color=(0.8, 0.8, 0.7, 1))
+        floor.set_polygon(plane)
         floor.set_pos(0, 0, -0.3)
         #floor.np.set_tag('ShadowReceiver', 'true')
 
@@ -47,7 +52,9 @@ class App(ShowBase):
 
         self.entity.np.set_tag('ShadowCaster', 'true')
 
-
+        # === 前方カメラをドローンに取り付ける ===
+        self._setup_front_camera()
+        
         # --- ここからカメラ ---
         target = Point3(drone_model.np.getPos(self.render))
         self.cam_ctrl = OrbitCamera(
@@ -98,6 +105,83 @@ class App(ShowBase):
             else:
                 rotor.rotate_child_yaw(rotation_speed)
             index += 1
+
+    def _setup_front_camera(self):
+        # ドローンノードにカメラノードを追加
+        front_cam_np = self.entity.np.attach_new_node(Camera("FrontCam"))
+
+        # 視野レンズを設定
+        lens = PerspectiveLens()
+        lens.set_fov(70)
+        front_cam_np.node().set_lens(lens)
+
+        # ドローン前方に少しずらす（前: -Y方向）
+        front_cam_np.set_pos(0, 0.2, 0.05)
+        front_cam_np.set_hpr(0, 0, 0)
+
+        # === 表示領域をサブウィンドウとして作る ===
+        x_len = 0.3
+        y_len = 0.3
+        x1 = 1.0 - x_len - 0.01  # 右端から少し内側
+        y1 = 1.0 - y_len - 0.01  # 上端から少し内側
+        x2 = x1 + x_len
+        y2 = y1 + y_len
+        dr = self.win.make_display_region(x1, x2, y1, y2)  # 右上小窓
+        dr.set_camera(front_cam_np)
+
+        dr.set_sort(20)                     # メインより後に描く
+        dr.set_clear_depth_active(True)     # デプスバッファを小窓でクリア
+        dr.set_clear_color_active(True)     # カラーバッファも小窓でクリア
+        dr.set_clear_color(self.background_color)
+
+        # --- ★ ここが今回のポイント：レンズのアスペクトを小窓に合わせる ---
+        win_aspect = self.getAspectRatio()                 # ウィンドウの幅/高さ
+        region_aspect = win_aspect * ((x2 - x1) / (y2 - y1))
+        lens.set_aspect_ratio(region_aspect)
+
+        # ついでに near/far も明示
+        lens.set_near_far(0.01, 1000)
+
+
+        self.front_cam_np = front_cam_np
+        self.dr_coords = (x1, x2, y1, y2)  # (x1, x2, y1, y2)
+        self._draw_front_cam_border()
+
+
+    def _uv_to_aspect(self, x: float, y: float):
+        """DisplayRegionのUV([0,1])→aspect2d座標への変換"""
+        aspect = self.getAspectRatio()
+        ax = (x - 0.5) * 2.0 * aspect
+        ay = (y - 0.5) * 2.0
+        return ax, ay
+
+    def _draw_front_cam_border(self, thickness: float = 2.0, inset: float = 0.0):
+        x1, x2, y1, y2 = self.dr_coords
+
+        # ほんの少し内側に寄せたい場合は inset を使う（0.0でぴったり）
+        x1i, x2i = x1 + inset, x2 - inset
+        y1i, y2i = y1 + inset, y2 - inset
+
+        ax1, ay1 = self._uv_to_aspect(x1i, y1i)
+        ax2, ay2 = self._uv_to_aspect(x2i, y2i)
+
+        ls = LineSegs()
+        ls.set_thickness(thickness)
+        ls.set_color(1, 1, 1, 1)  # 白
+
+        ls.move_to(ax1, 0, ay1)
+        ls.draw_to(ax2, 0, ay1)
+        ls.draw_to(ax2, 0, ay2)
+        ls.draw_to(ax1, 0, ay2)
+        ls.draw_to(ax1, 0, ay1)
+
+        # 2Dオーバーレイに追加（最前面に出すためbin指定）
+        if hasattr(self, "front_cam_border_np") and not self.front_cam_border_np.is_empty():
+            self.front_cam_border_np.remove_node()
+        self.front_cam_border_np = aspect2d.attach_new_node(ls.create())
+        self.front_cam_border_np.set_bin("fixed", 100)
+        self.front_cam_border_np.set_depth_test(False)
+        self.front_cam_border_np.set_depth_write(False)
 
     def update_text(self, task):
         pos = self.entity.np.getPos(self.render)
