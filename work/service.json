@@ -3,17 +3,17 @@
     "pdu_config_path": "pdu_config.json",
     "services": [
         {
-            "name": "Service/Add",
-            "type": "hako_srv_msgs/AddTwoInts",
+            "name": "DroneService/CameraCaptureImage",
+            "type": "drone_srv_msgs/CameraCaptureImage",
             "maxClients": 1,
             "pduSize": {
                 "server": {
                     "heapSize": 0,
-                    "baseSize": 296
+                    "baseSize": 536
                 },
                 "client": {
-                    "heapSize": 0,
-                    "baseSize": 288
+                    "heapSize": 1002992,
+                    "baseSize": 680
                 }
             }
         }

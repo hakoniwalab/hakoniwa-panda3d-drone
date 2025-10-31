@@ -4,7 +4,8 @@ import sys
 import asyncio
 from hakoniwa_pdu.service.shm_common import ShmCommon
 from hakoniwa_pdu.service.shm_service_client import ShmServiceClient
-from hakoniwa_pdu.pdu_msgs.hako_srv_msgs.pdu_pytype_AddTwoIntsRequest import AddTwoIntsRequest
+from hakoniwa_pdu.pdu_msgs.drone_srv_msgs.pdu_pytype_CameraCaptureImageRequest import CameraCaptureImageRequest
+from hakoniwa_pdu.pdu_msgs.drone_srv_msgs.pdu_pytype_CameraCaptureImageResponse import CameraCaptureImageResponse
 from hakoniwa_pdu.rpc.auto_wire import make_protocol_clients
 from hakoniwa_pdu.rpc.protocol_client import ProtocolClientImmediate
 from hakoniwa_pdu.rpc.shm.shm_pdu_service_client_manager import ShmPduServiceClientManager
@@ -29,12 +30,12 @@ async def main_async():
         pdu_manager=client_pdu_manager,
         services= [
             {
-                "service_name": "Service/Add",
+                "service_name": "DroneService/CameraCaptureImage",
                 "client_name": "Client01",
-                "srv": "AddTwoInts",
+                "srv": "CameraCaptureImage",
             }
         ],
-        pkg = "hakoniwa_pdu.pdu_msgs.hako_srv_msgs",
+        pkg = "hakoniwa_pdu.pdu_msgs.drone_srv_msgs",
         ProtocolClientClass=ProtocolClientImmediate,
     )
     first_client = next(iter(protocol_clients.values()))
@@ -42,11 +43,10 @@ async def main_async():
     for client in protocol_clients.values():
         client.register()
 
-    req = AddTwoIntsRequest()
-    req.a = 108
-    req.b = 2
-
-    res = protocol_clients["Service/Add"].call(req)
+    req = CameraCaptureImageRequest()
+    req.drone_name = "Drone"
+    req.image_type = "png"
+    res = protocol_clients["DroneService/CameraCaptureImage"].call(req)
     if res is None:
         print("Failed to get response")
         return 1

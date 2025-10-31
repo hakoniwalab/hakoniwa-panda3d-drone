@@ -5,14 +5,16 @@ import asyncio
 import hakopy
 from hakoniwa_pdu.service.shm_common import ShmCommon
 from hakoniwa_pdu.rpc.shm.shm_pdu_service_server_manager import ShmPduServiceServerManager
-from hakoniwa_pdu.pdu_msgs.hako_srv_msgs.pdu_pytype_AddTwoIntsRequest import AddTwoIntsRequest
-from hakoniwa_pdu.pdu_msgs.hako_srv_msgs.pdu_pytype_AddTwoIntsResponse import AddTwoIntsResponse
+from hakoniwa_pdu.pdu_msgs.drone_srv_msgs.pdu_pytype_CameraCaptureImageRequest import CameraCaptureImageRequest
+from hakoniwa_pdu.pdu_msgs.drone_srv_msgs.pdu_pytype_CameraCaptureImageResponse import CameraCaptureImageResponse
 from hakoniwa_pdu.rpc.auto_wire import make_protocol_servers
 from hakoniwa_pdu.rpc.protocol_server import ProtocolServerImmediate
 
-async def my_add_handler(req: AddTwoIntsRequest):
-    result = AddTwoIntsResponse()
-    result.sum = req.a + req.b
+async def my_camera_capture_handler(req: CameraCaptureImageRequest):
+    result = CameraCaptureImageResponse()
+    result.ok = True
+    result.data = [1, 2, 3, 4, 5]
+    result.message = f"Captured image of type {req.image_type} from drone {req.drone_name}"
     return result
 
 async def main_async():
@@ -30,8 +32,8 @@ async def main_async():
     server_pdu_manager = ShmPduServiceServerManager(asset_name, pdu_config_path, pdu_offset_path)
     services=[
         {
-            "service_name": "Service/Add",
-            "srv": "AddTwoInts",
+            "service_name": "DroneService/CameraCaptureImage",
+            "srv": "CameraCaptureImage",
             "max_clients": 1,
         }
     ]
@@ -40,13 +42,14 @@ async def main_async():
         pdu_manager=server_pdu_manager,
         services=services,
         ProtocolServerClass=ProtocolServerImmediate,
+        pkg="hakoniwa_pdu.pdu_msgs.drone_srv_msgs"
     )
     protocol_server.start_services()
     await protocol_server.serve({
-        "Service/Add": my_add_handler,
+        "DroneService/CameraCaptureImage": my_camera_capture_handler,
     })
 
-    print("Service server started for Service/Add")
+    print("Service server started for DroneService/CameraCaptureImage")
 
     shm.stop_conductor()
     return 0
