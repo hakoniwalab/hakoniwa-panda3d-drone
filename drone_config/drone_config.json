@@ -3,7 +3,7 @@
   "model": "../models/drone.glb",
   "pos": [0, 0, 0.01],
   "hpr": [180, 180, 0],
-  "children": [
+  "rotors": [
     {
       "name": "drone_rotor1",
       "model": "../models/prop-1.glb",

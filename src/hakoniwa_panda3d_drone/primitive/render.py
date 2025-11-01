@@ -8,6 +8,11 @@ class RenderEntity:
         self.np = parent.attachNewNode(name)
         self._geom_np: Optional[NodePath] = None  # 子ジオメトリの NodePath
         self.children = []
+        self.purpose = None
+
+    def set_purpose(self, purpose: str):
+        """NodePath の Purpose を設定"""
+        self.purpose = purpose
 
     def add_child(self, child: 'RenderEntity'):
         """子エンティティをぶら下げる"""
