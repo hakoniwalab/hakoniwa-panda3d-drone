@@ -1,6 +1,8 @@
 from panda3d.core import NodePath, Vec3
 from hakoniwa_panda3d_drone.primitive.polygon import Polygon
 from typing import Optional
+import os
+from pathlib import Path
 
 class RenderEntity:
     """NodePath を持ち、Polygon から受け取った GeomNode をぶら下げる"""
@@ -71,3 +73,12 @@ class RenderEntity:
 
     def rotate_child_yaw(self, delta_yaw: float):
         self._geom_np.setH(self._geom_np.getH() + delta_yaw)
+
+    def resolve_model_path(self, path: str) -> str:
+        p = Path(path)
+        if p.is_absolute():
+            return str(p)
+        base = Path.cwd()
+        rp = str((base / p).resolve())
+        print(f"Resolved model path: {rp}")
+        return rp

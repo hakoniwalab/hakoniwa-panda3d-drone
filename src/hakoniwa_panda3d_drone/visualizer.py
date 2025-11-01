@@ -11,6 +11,7 @@ import json
 from pathlib import Path
 from panda3d.core import Camera, NodePath, PerspectiveLens, DisplayRegion, LineSegs
 from hakoniwa_panda3d_drone.core.attach_camera import AttachCamera
+from hakoniwa_panda3d_drone.core.environment import EnvironmentEntity
 import sys
 
 print(f"--- Running Panda3D Version: {panda3d.__version__} ---")
@@ -21,6 +22,7 @@ class App(ShowBase):
         self.disableMouse()
 
         self.background_color = (0.7, 0.7, 0.7, 1)
+        #self.background_color = (0.12, 0.12, 0.14, 1) 
 
         self.set_background_color(*self.background_color)
         self.render.setShaderAuto()
@@ -39,17 +41,17 @@ class App(ShowBase):
                 drone_model.add_child(child_entity)
 
         # --- 照明セットアップ（先に設定） ---
-        self.lights = LightRig(self.render, shadows=True)
+        self.lights = LightRig(self.render, shadows=False)
 
-        # 床
-        floor = RenderEntity(self.render, "floor")
-        plane = Plane(size=5.0, color=(0.8, 0.8, 0.7, 1))
-        floor.set_polygon(plane)
-        floor.set_pos(0, 0, -0.3)
-        #floor.np.set_tag('ShadowReceiver', 'true')
-
-        # 床は影を受ける
-        floor.np.show()  # 念のため
+        self.env = EnvironmentEntity(
+            render=self.render,
+            name=config['environments'][0]['name'],
+            model_path=config['environments'][0]['model'],
+            pos=config['environments'][0]['pos'],
+            hpr=config['environments'][0]['hpr'],
+            scale=config['environments'][0]['scale'],
+            loader=self.loader,
+        )
 
         self.drone_model = drone_model
         self.drone_model.np.set_tag('ShadowCaster', 'true')
