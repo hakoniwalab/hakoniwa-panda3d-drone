@@ -29,11 +29,11 @@ class App(ShowBase):
         with open(drone_config_path, 'r') as f:
             config = json.load(f)
 
-        drone_model = self._create_entity_from_config(config, copy=True)
+        drone_model = self._create_entity_from_config(config['drones'][0], copy=True)
         drone_model.set_purpose('drone')
 
-        if 'rotors' in config:
-            for child_config in config['rotors']:
+        if 'rotors' in config['drones'][0]:
+            for child_config in config['drones'][0]['rotors']:
                 child_entity = self._create_entity_from_config(child_config, copy=True)
                 child_entity.set_purpose('rotor')
                 drone_model.add_child(child_entity)
@@ -57,7 +57,7 @@ class App(ShowBase):
         # === 前方カメラをドローンに取り付ける ===
         #self._setup_front_camera()
         self.drone_cam = None
-        for cam_config in config.get('cameras', []):
+        for cam_config in config['drones'][0].get('cameras', []):
             attach_cam = AttachCamera(
                 parent=drone_model.np,
                 aspect2d=self.aspect2d,
