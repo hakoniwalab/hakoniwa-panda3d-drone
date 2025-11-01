@@ -1,6 +1,7 @@
 from typing import Optional, Tuple
 from direct.showbase.ShowBase import ShowBase
 from panda3d.core import NodePath, Camera, PerspectiveLens, GraphicsWindow, LineSegs, Texture, PNMImage, Filename
+from panda3d.core import Texture, PNMImage, StringStream
 
 from hakoniwa_panda3d_drone.primitive.render import RenderEntity
 
@@ -109,3 +110,48 @@ class AttachCamera(RenderEntity):
         height = win.get_y_size()
         return (width / height) if height else 1.0
 
+    def capture_png_bytes(self, base, w: int = 1280, h: int = 720) -> bytes:
+        # オフスクリーン作成
+        tex = Texture()
+        tex.set_format(Texture.F_rgba)
+        buf = base.win.make_texture_buffer(f"{self.np.get_name()}_buf", w, h, tex)
+        buf.set_clear_color_active(True)
+        buf.set_clear_color(self.background_color)
+        # buf.set_one_shot(True)  # 利用可なら有効化
+
+        dr = buf.make_display_region()
+        dr.set_sort(0)
+        dr.set_clear_depth_active(True)
+        dr.set_camera(self.np)
+
+        # 少なくとも2フレームレンダ（初期化→描画）
+        base.graphicsEngine.render_frame()
+        base.graphicsEngine.render_frame()
+
+        # GPU→CPU転送（macOSで重要）
+        gsg = base.win.getGsg()
+        if gsg is not None:
+            base.graphicsEngine.extract_texture_data(tex, gsg)
+
+        # サイズ確認（size ではなく len()）
+        ok = tex.hasRamImage() and len(tex.getRamImage()) > 0
+        if not ok:
+            # もう1フレーム回して再トライ
+            base.graphicsEngine.render_frame()
+            if gsg is not None:
+                base.graphicsEngine.extract_texture_data(tex, gsg)
+            ok = tex.hasRamImage() and len(tex.getRamImage()) > 0
+
+        if not ok:
+            base.graphicsEngine.remove_window(buf)
+            raise RuntimeError("Capture failed: texture has no RAM image (len=0)")
+
+        # PNGエンコード（メモリストリーム）
+        img = PNMImage()
+        tex.store(img)
+        ss = StringStream()
+        img.write(ss, "png")
+        data = ss.get_data()
+
+        base.graphicsEngine.remove_window(buf)
+        return data

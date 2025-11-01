@@ -56,6 +56,7 @@ class App(ShowBase):
 
         # === 前方カメラをドローンに取り付ける ===
         #self._setup_front_camera()
+        self.drone_cam = None
         for cam_config in config.get('cameras', []):
             attach_cam = AttachCamera(
                 parent=drone_model.np,
@@ -76,6 +77,8 @@ class App(ShowBase):
             hpr = cam_config.get('hpr', [0, 0, 0])
             attach_cam.set_pos(*pos)
             attach_cam.set_hpr(*hpr)
+            if self.drone_cam is None:
+                self.drone_cam = attach_cam
             self.drone_model.add_child(attach_cam)
 
         sys.stdout.flush()
@@ -101,6 +104,18 @@ class App(ShowBase):
             scale=0.05, fg=(1, 1, 1, 1), align=TextNode.ARight, mayChange=True
         )
         self.taskMgr.add(self.update_text, "update_text_task")
+        self.accept("s", self.snapshot_attach_camera, ["attach_cam.png", 1280, 720])
+
+    def snapshot_attach_camera(self, path: str, w: int = 1280, h: int = 720):
+        """次フレームで1回だけキャプチャして保存"""
+        from direct.task import Task
+        def _do(task):
+            png = self.drone_cam.capture_png_bytes(self, w, h)  # ← AttachCameraのメソッド（後述）
+            with open(path, "wb") as f:
+                f.write(png)
+            print(f"[snapshot] saved: {path}")
+            return Task.done
+        self.taskMgr.add(_do, "snapshot_once")
 
     def _resolve_model_path(self, path: str) -> str:
         p = Path(path)
