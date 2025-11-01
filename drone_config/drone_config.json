@@ -24,5 +24,46 @@
       "model": "../models/prop-1.glb",
       "pos": [-0.062, 0.065, -0.01]
     }
+  ],
+  "cameras": [
+    {
+      "name": "attach_camera1",
+      "pos": [0, -0.2, 0.05],
+      "hpr": [0, 0, 0],
+      "fov": 75,
+      "window": {
+        "x": 0.69,
+        "y": 0.69,
+        "width": 0.3,
+        "height": 0.3
+      },
+      "sort": 20
+    },
+    {
+      "name": "attach_camera2",
+      "pos": [0.2, -0.2, 0.05],
+      "hpr": [10, 0, 0],
+      "fov": 75,
+      "window": {
+        "x": 0.0,
+        "y": 0.69,
+        "width": 0.3,
+        "height": 0.3
+      },
+      "sort": 21
+    },
+    {
+      "name": "attach_camera3",
+      "pos": [0.0, 0.2, 0.05],
+      "hpr": [0, 0, 0],
+      "fov": 75,
+      "window": {
+        "x": 0.35,
+        "y": 0.69,
+        "width": 0.3,
+        "height": 0.3
+      },
+      "sort": 22
+    }
   ]
 }

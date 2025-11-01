@@ -53,6 +53,8 @@ class AttachCamera(RenderEntity):
         dr.set_clear_color(self.background_color)
         self.display_region = dr
 
+        print(f"[AttachCamera] Created DisplayRegion at UV({x1:.2f},{y1:.2f})-({x2:.2f},{y2:.2f})")
+        #flush print
         # レンズのアスペクトを小窓に合わせる
         win_w = win.get_x_size()
         win_h = win.get_y_size()

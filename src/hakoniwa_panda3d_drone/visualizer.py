@@ -11,6 +11,7 @@ import json
 from pathlib import Path
 from panda3d.core import Camera, NodePath, PerspectiveLens, DisplayRegion, LineSegs
 from hakoniwa_panda3d_drone.core.attach_camera import AttachCamera
+import sys
 
 print(f"--- Running Panda3D Version: {panda3d.__version__} ---")
 
@@ -55,21 +56,29 @@ class App(ShowBase):
 
         # === 前方カメラをドローンに取り付ける ===
         #self._setup_front_camera()
-        attach_cam = AttachCamera(
-            parent=drone_model.np,
-            aspect2d=self.aspect2d,
-            name="FrontCam",
-            fov=70.0,
-            background_color=self.background_color
-        )
-        attach_cam.set_display_region(
-            win=self.win,
-            sort=20,
-            x=0.69, y=0.69, width=0.3, height=0.3
-        )
-        attach_cam.set_pos(0, -0.2, 0.05)
-        attach_cam.set_hpr(0, 0, 0)
-        self.drone_model.add_child(attach_cam)
+        for cam_config in config.get('cameras', []):
+            attach_cam = AttachCamera(
+                parent=drone_model.np,
+                aspect2d=self.aspect2d,
+                name=cam_config.get('name', 'AttachedCam'),
+                fov=cam_config.get('fov', 70.0),
+                background_color=self.background_color
+            )
+            attach_cam.set_display_region(
+                win=self.win,
+                sort=cam_config.get('sort', 20),
+                x=cam_config.get('window', {}).get('x', 0.7),
+                y=cam_config.get('window', {}).get('y', 0.7),
+                width=cam_config.get('window', {}).get('width', 0.3),
+                height=cam_config.get('window', {}).get('height', 0.3)
+            )
+            pos = cam_config.get('pos', [0, -0.2, 0.05])
+            hpr = cam_config.get('hpr', [0, 0, 0])
+            attach_cam.set_pos(*pos)
+            attach_cam.set_hpr(*hpr)
+            self.drone_model.add_child(attach_cam)
+
+        sys.stdout.flush()
 
         # --- ここからカメラ ---
         target = Point3(drone_model.np.getPos(self.render))
