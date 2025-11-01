@@ -50,6 +50,8 @@ class App(ShowBase):
             pos=config['environments'][0]['pos'],
             hpr=config['environments'][0]['hpr'],
             scale=config['environments'][0]['scale'],
+            cache=config['environments'][0].get('cache', False),
+            copy=config['environments'][0].get('copy', False),
             loader=self.loader,
         )
 

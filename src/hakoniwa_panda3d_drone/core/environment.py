@@ -12,6 +12,8 @@ class EnvironmentEntity(RenderEntity):
         pos: Optional[Tuple[float, float, float]] = None,
         hpr: Optional[Tuple[float, float, float]] = None,
         scale: float = 1.0,
+        cache: bool = False,
+        copy: bool = False,
         loader=None,
     ):
         # RenderEntity は (render, name) で初期化
@@ -29,7 +31,7 @@ class EnvironmentEntity(RenderEntity):
             p = (Path.cwd() / p).resolve()
 
         # モデルロード
-        self.load_model(loader, str(p), copy=True)
+        self.load_model(loader, str(p), copy=copy)
 
         # 表裏両面（屋内モデル対策）
         self.np.setTwoSided(True)

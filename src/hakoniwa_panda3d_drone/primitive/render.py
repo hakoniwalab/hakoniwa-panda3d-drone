@@ -43,10 +43,10 @@ class RenderEntity:
         self._geom_np = model_np.copy_to(self.np) if copy else model_np.reparentTo(self.np) or model_np
 
 
-    def load_model(self, loader, path: str, copy: bool = True):
+    def load_model(self, loader, path: str, copy: bool = True, cache: bool = False):
         """loader.loadModel(path) して set_model までを一手に。"""
         print(f"Loading model from: {path}")
-        model_np = loader.loadModel(path, noCache=True)
+        model_np = loader.loadModel(path, noCache=not cache)
         self._set_model(model_np, copy=copy)
 
     def clear(self):
