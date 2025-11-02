@@ -74,6 +74,9 @@ class RenderEntity:
     def rotate_child_yaw(self, delta_yaw: float):
         self._geom_np.setH(self._geom_np.getH() + delta_yaw)
 
+    def rotate_pitch(self, delta_pitch: float):
+        self.np.setP(self.np.getP() + delta_pitch)
+
     def resolve_model_path(self, path: str) -> str:
         p = Path(path)
         if p.is_absolute():

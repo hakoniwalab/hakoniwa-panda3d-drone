@@ -11,6 +11,8 @@ from hakoniwa_pdu.pdu_manager import PduManager
 from hakoniwa_pdu.impl.shm_communication_service import ShmCommunicationService
 from hakoniwa_pdu.pdu_msgs.geometry_msgs.pdu_conv_Twist import pdu_to_py_Twist
 from hakoniwa_pdu.pdu_msgs.hako_mavlink_msgs.pdu_conv_HakoHilActuatorControls import pdu_to_py_HakoHilActuatorControls
+from hakoniwa_pdu.pdu_msgs.hako_msgs.pdu_pytype_GameControllerOperation import GameControllerOperation
+from hakoniwa_pdu.pdu_msgs.hako_msgs.pdu_conv_GameControllerOperation import py_to_pdu_GameControllerOperation, pdu_to_py_GameControllerOperation
 
 # --- RPC 関連 ---
 from hakoniwa_pdu.service.shm_common import ShmCommon
@@ -76,6 +78,15 @@ async def env_control_loop(stop_event: asyncio.Event):
             pass
         panda3d_pos, panda3d_orientation = Frame.to_panda3d(pose)
         ui_queue.put(("pose", (panda3d_pos, panda3d_orientation, rotor_speed)))
+
+        try:
+            raw_game_ctrl = server_pdu_manager.read_pdu_raw_data('Drone', 'hako_cmd_game')
+            game_ctrl = pdu_to_py_GameControllerOperation(raw_game_ctrl) if raw_game_ctrl else None
+            if game_ctrl is not None:
+                # UI スレッドへ命令を投げる
+                ui_queue.put(("game_controller", game_ctrl))
+        except Exception as e:
+            pass
 
     print("[Visualizer] Environment Control loop finished")
 
@@ -152,7 +163,9 @@ def panda3d_ui_task(task):
         if kind == "pose" and visualizer_runner is not None:
             pos, orient, rotor_speed = payload
             visualizer_runner.set_pose_and_rotation(pos, orient, rotor_speed)
-
+        elif kind == "game_controller" and visualizer_runner is not None:
+            game_ctrl: GameControllerOperation = payload
+            visualizer_runner.update_game_controller_ui(game_ctrl)
         elif kind == "capture_request":
             # payload: {drone_name, image_type, future}
             drone_name = payload["drone_name"]

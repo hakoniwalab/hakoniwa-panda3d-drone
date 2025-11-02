@@ -12,6 +12,8 @@ from pathlib import Path
 from panda3d.core import Camera, NodePath, PerspectiveLens, DisplayRegion, LineSegs
 from hakoniwa_panda3d_drone.core.attach_camera import AttachCamera
 from hakoniwa_panda3d_drone.core.environment import EnvironmentEntity
+from hakoniwa_pdu.pdu_msgs.hako_msgs.pdu_pytype_GameControllerOperation import GameControllerOperation
+
 import sys
 
 print(f"--- Running Panda3D Version: {panda3d.__version__} ---")
@@ -174,6 +176,15 @@ class App(ShowBase):
             else:
                 rotor.rotate_child_yaw(rotation_speed)
             index += 1
+
+    def update_game_controller_ui(self, game_ctrl: GameControllerOperation):
+        if self.drone_cam is not None:
+            #up down drone camera pitch based on buttons: up=11, down=12
+            if game_ctrl.button[11]:
+                self.drone_cam.rotate_pitch(1.0)
+            if game_ctrl.button[12]:
+                self.drone_cam.rotate_pitch(-1.0)
+        print(f"Game Controller State: {game_ctrl}")
 
 
     def update_text(self, task):

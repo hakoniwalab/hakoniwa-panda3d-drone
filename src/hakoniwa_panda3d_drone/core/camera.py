@@ -49,6 +49,9 @@ class OrbitCamera:
 
         self._task_name = "orbit_camera_update"
 
+        lens = base.cam.node().get_lens()
+        lens.set_near_far(0.001, 1000.0)
+
         # 入力バインド
         a = self.base.accept
         a("mouse1", self._on_mouse1_down)
