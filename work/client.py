@@ -14,7 +14,7 @@ async def main_async():
 
     asset_name = None
     pdu_config_path = 'pdu_config.json'
-    service_config_path = './service.json'
+    service_config_path = '../launcher_config/service.json'
     pdu_offset_path = '/usr/local/share/hakoniwa/offset'
     delta_time_usec = 1000 * 1000
 
@@ -46,7 +46,7 @@ async def main_async():
     req = CameraCaptureImageRequest()
     req.drone_name = "Drone"
     req.image_type = "png"
-    res = protocol_clients["DroneService/CameraCaptureImage"].call(req)
+    res = protocol_clients["DroneService/CameraCaptureImage"].call(req, poll_interval=0.01, timeout_msec=-1)
     if res is None:
         print("Failed to get response")
         return 1

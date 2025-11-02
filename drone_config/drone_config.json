@@ -41,7 +41,7 @@
       "cameras": [
         {
           "name": "front_camera",
-          "pos": [0.0, 0.105, 0.0],
+          "pos": [0.0, 0.1, 0.0],
           "hpr": [0, 0, 0],
           "fov": 90,
           "near": 0.015,
@@ -54,9 +54,9 @@
           },
           "sort": 20,
           "model": {
-            "model_path": "../models/camera-1.glb",
+            "model_path": "../models/camera.glb",
             "pos": [0.0, 0.0, 0.0],
-            "hpr": [0, 0, 180]
+            "hpr": [0, 0, 0]
           }
         }
       ]

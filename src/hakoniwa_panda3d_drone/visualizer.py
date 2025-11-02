@@ -184,7 +184,7 @@ class App(ShowBase):
                 self.drone_cam.rotate_pitch(1.0)
             if game_ctrl.button[12]:
                 self.drone_cam.rotate_pitch(-1.0)
-        print(f"Game Controller State: {game_ctrl}")
+        #print(f"Game Controller State: {game_ctrl}")
 
 
     def update_text(self, task):

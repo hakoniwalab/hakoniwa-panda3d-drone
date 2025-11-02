@@ -71,8 +71,8 @@ class AttachCamera(RenderEntity):
         self.lens.set_aspect_ratio(region_aspect)
 
         # 枠を描く
-        self.dr_coords = (x1, x2, y1, y2)
-        self._draw_front_cam_border(win)
+        #self.dr_coords = (x1, x2, y1, y2)
+        #self._draw_front_cam_border(win)
 
     # ---- 2D枠線描画 ---------------------------------------------------------
     def _uv_to_aspect(self, win: GraphicsWindow, x: float, y: float):
