@@ -61,7 +61,7 @@
       "command": "${PYTHON_PATH}",
       "args": [
         "-m",
-        "rc-custom",
+        "rc-custom-srv",
         "../../config/pdudef/webavatar.json",
         "rc_config/ps4-control.json"
       ],
