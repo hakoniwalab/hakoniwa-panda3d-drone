@@ -46,9 +46,11 @@
       "args": [
         "-m",
         "hakoniwa_panda3d_drone.hako_asset",
-        "${HAKO_DRONE_PROJECT_PATH}/config/pdudef/webavatar.json",
         "${HAKO_PANDA3D_DRONE_PATH}/drone_config/drone_config.json",
-        "20"
+        "20",
+        "${HAKO_PANDA3D_DRONE_PATH}/launcher_config/service.json",
+        "${HAKO_DRONE_PROJECT_PATH}/config/pdudef/webavatar.json",
+        "/usr/local/share/hakoniwa/offset"
       ],
       "cwd": "${HAKO_PANDA3D_DRONE_PATH}/src",
       "depends_on": ["drone"]

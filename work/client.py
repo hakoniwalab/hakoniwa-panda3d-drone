@@ -51,6 +51,10 @@ async def main_async():
         print("Failed to get response")
         return 1
     print(f"Response: {res}")
+    png_images = res.data
+    with open("captured_image.png", "wb") as f:
+        f.write(bytearray(png_images))
+    print("Image saved to captured_image.png")
     return 0
 
 def main():

@@ -121,6 +121,25 @@ class App(ShowBase):
             return Task.done
         self.taskMgr.add(_do, "snapshot_once")
 
+    def capture_camera(self, drone_name: str, image_type: str, w: int = 1280, h: int = 720) -> bytes:
+        """
+        カメラ画像をバイト列で取得。
+        image_type: "png" | "jpeg" などを想定
+        """
+        if self.drone_cam is None:
+            # 空画像を返す／例外を投げる等、方針に合わせて
+            # ここでは例外で返して RPC 側でメッセージにするのがわかりやすい
+            raise RuntimeError("Attached camera is not initialized")
+
+        # AttachCamera 側に jpeg 版があるなら使う。なければ png を共通化でもOK
+        itype = (image_type or "png").lower()
+        if itype in ("jpg", "jpeg") and hasattr(self.drone_cam, "capture_jpeg_bytes"):
+            return self.drone_cam.capture_jpeg_bytes(self, w, h)
+
+        # 既存の png をデフォルトに
+        return self.drone_cam.capture_png_bytes(self, w, h)
+
+
     def _resolve_model_path(self, path: str) -> str:
         p = Path(path)
         if p.is_absolute():
