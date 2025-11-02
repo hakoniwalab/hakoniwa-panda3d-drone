@@ -41,7 +41,7 @@
     },
     {
       "name": "Panda3dSimulator",
-      "activation_timing": "after_start",
+      "activation_timing": "before_start",
       "command": "${PYTHON_PATH}",
       "args": [
         "-m",

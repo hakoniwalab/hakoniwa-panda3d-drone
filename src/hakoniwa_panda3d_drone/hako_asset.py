@@ -25,6 +25,25 @@ from hakoniwa_pdu.rpc.protocol_server import ProtocolServerImmediate
 from hakoniwa_panda3d_drone.visualizer import App
 from hakoniwa_panda3d_drone.primitive.frame import Frame
 
+
+def is_hakoniwa_running() -> bool:
+    import subprocess
+    result = subprocess.run(
+        ["hako-cmd", "status"],
+        capture_output=True,
+        text=True
+    )
+
+    output = result.stdout.strip()
+    print(output)
+
+    if "status=running" in output:
+        print("✅ Hakoniwa is running!")
+        return True
+    else:
+        print("❌ Hakoniwa is NOT running.")
+        return False
+
 # === globals ===
 delta_time_usec = 0
 drone_config_path = ''
@@ -55,6 +74,9 @@ async def my_sleep_async():
 async def env_control_loop(stop_event: asyncio.Event):
     global server_pdu_manager
     print("[Visualizer] Start Environment Control (async)")
+    while not is_hakoniwa_running():
+        print("[Visualizer] Waiting for Hakoniwa to start...")
+        await asyncio.sleep(1.0)
 
     while not stop_event.is_set():
         sys.stdout.flush()
@@ -127,7 +149,28 @@ async def rpc_server_task(stop_event: asyncio.Event):
     箱庭 RPC の起動・待受けを行うタスク。
     """
     print("[RPC] Starting RPC server...")
+    while not is_hakoniwa_running():
+        print("[RPC] Waiting for Hakoniwa to start...")
+        await asyncio.sleep(1.0)
 
+
+    services = [
+        {
+            "service_name": "DroneService/CameraCaptureImage",
+            "srv": "CameraCaptureImage",
+            "max_clients": 1,
+        }
+    ]
+
+    protocol_server = make_protocol_servers(
+        pdu_manager=server_pdu_manager,
+        services=services,
+        ProtocolServerClass=ProtocolServerImmediate,
+        pkg="hakoniwa_pdu.pdu_msgs.drone_srv_msgs"
+    )
+    protocol_server.start_services()
+
+    print("[RPC] RPC server is running.")
     sys.stdout.flush()
     # serve() はハンドラマップを受け取って待受
     serve_task = asyncio.create_task(protocol_server.serve({
@@ -228,25 +271,7 @@ def main():
 
     print("[Visualizer] Start simulation...")
     server_pdu_manager = ShmPduServiceServerManager("ServiceManager", pdu_config_path, pdu_offset_path)
-
-    services = [
-        {
-            "service_name": "DroneService/CameraCaptureImage",
-            "srv": "CameraCaptureImage",
-            "max_clients": 1,
-        }
-    ]
-
     server_pdu_manager.initialize_services(service_config_path, delta_time_usec=delta_time_usec)
-
-    protocol_server = make_protocol_servers(
-        pdu_manager=server_pdu_manager,
-        services=services,
-        ProtocolServerClass=ProtocolServerImmediate,
-        pkg="hakoniwa_pdu.pdu_msgs.drone_srv_msgs"
-    )
-    protocol_server.start_services()
-
 
     # 非同期ランタイム起動（環境制御 + RPC）
     stop_event = asyncio.Event()
