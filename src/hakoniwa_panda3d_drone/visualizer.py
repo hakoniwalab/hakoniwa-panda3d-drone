@@ -63,11 +63,15 @@ class App(ShowBase):
         self.drone_cam = None
         for cam_config in config['drones'][0].get('cameras', []):
             attach_cam = AttachCamera(
+                self.loader,
                 parent=drone_model.np,
                 aspect2d=self.aspect2d,
                 name=cam_config.get('name', 'AttachedCam'),
                 fov=cam_config.get('fov', 70.0),
-                background_color=self.background_color
+                near=cam_config.get('near', 0.1),
+                far=cam_config.get('far', 1000.0),
+                background_color=self.background_color,
+                model_config=cam_config.get('model', None),
             )
             attach_cam.set_display_region(
                 win=self.win,

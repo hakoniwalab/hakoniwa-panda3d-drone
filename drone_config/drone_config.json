@@ -40,43 +40,24 @@
       ],
       "cameras": [
         {
-          "name": "attach_camera1",
-          "pos": [0, -0.2, 0.05],
+          "name": "front_camera",
+          "pos": [0.0, 0.105, 0.0],
           "hpr": [0, 0, 0],
-          "fov": 75,
-          "window": {
-            "x": 0.69,
-            "y": 0.69,
-            "width": 0.3,
-            "height": 0.3
-          },
-          "sort": 20
-        },
-        {
-          "name": "attach_camera2",
-          "pos": [0.2, -0.2, 0.05],
-          "hpr": [10, 0, 0],
-          "fov": 75,
-          "window": {
-            "x": 0.0,
-            "y": 0.69,
-            "width": 0.3,
-            "height": 0.3
-          },
-          "sort": 21
-        },
-        {
-          "name": "attach_camera3",
-          "pos": [0.0, 0.2, 0.05],
-          "hpr": [0, 0, 0],
-          "fov": 75,
+          "fov": 90,
+          "near": 0.015,
+          "far": 1000,
           "window": {
             "x": 0.35,
             "y": 0.69,
             "width": 0.3,
             "height": 0.3
           },
-          "sort": 22
+          "sort": 20,
+          "model": {
+            "model_path": "../models/camera.glb",
+            "pos": [0.0, 0.0, 0.0],
+            "hpr": [0, 0, 0]
+          }
         }
       ]
     }

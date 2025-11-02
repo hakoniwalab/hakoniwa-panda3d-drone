@@ -8,20 +8,28 @@ from hakoniwa_panda3d_drone.primitive.render import RenderEntity
 class AttachCamera(RenderEntity):
     def __init__(
         self,
+        loader,
         parent: NodePath,
         aspect2d: NodePath,               # ★ ShowBase.aspect2d を渡す
         name: str = "entity",
         fov: float = 70.0,
-        background_color: Tuple[float,float,float,float] = (0,0,0,1)
+        near: float = 0.1,
+        far: float = 1000.0,
+        background_color: Tuple[float,float,float,float] = (0,0,0,1),
+        model_config: dict = None,
     ):
         super().__init__(parent, name)
         # np をカメラに差し替え
         self.np = parent.attachNewNode(Camera(name + "_camera"))
+        if model_config is not None:
+            self.load_model(loader, self.resolve_model_path(model_config.get("model_path")), copy=True, cache=False)
+            self._geom_np.set_pos(*model_config.get("pos", [0,0,0]))
+            self._geom_np.set_hpr(*model_config.get("hpr", [0,0,0]))
 
         # レンズ設定
         self.lens = PerspectiveLens()
         self.lens.set_fov(fov)
-        self.lens.set_near_far(0.01, 1000)
+        self.lens.set_near_far(near, far)
         self.np.node().set_lens(self.lens)
 
         # ボーダー用
