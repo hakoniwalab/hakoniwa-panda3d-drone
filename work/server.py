@@ -20,8 +20,8 @@ async def my_camera_capture_handler(req: CameraCaptureImageRequest):
 async def main_async():
 
     asset_name = 'ServiceManager'
-    service_config_path = 'service.json'
-    pdu_config_path = 'pdu_config.json'
+    pdu_config_path = '/Users/tmori/project/private/hakoniwa-drone-pro/config/pdudef/webavatar.json'
+    service_config_path = '../launcher_config/service.json'
     pdu_offset_path = '/usr/local/share/hakoniwa/offset'
     delta_time_usec = 1000 * 1000
 

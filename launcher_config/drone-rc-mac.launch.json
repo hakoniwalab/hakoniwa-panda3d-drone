@@ -57,7 +57,7 @@
     },
     {
       "name": "remote_controller",
-      "activation_timing": "after_start",
+      "activation_timing": "before_start",
       "command": "${PYTHON_PATH}",
       "args": [
         "-m",
@@ -65,7 +65,8 @@
         "../../config/pdudef/webavatar.json",
         "rc_config/ps4-control.json"
       ],
-      "cwd": "${HAKO_DRONE_PROJECT_PATH}/drone_api/rc"
+      "cwd": "${HAKO_DRONE_PROJECT_PATH}/drone_api/rc",
+      "depends_on": ["Panda3dSimulator"]
     }    
   ],
   "notify": {

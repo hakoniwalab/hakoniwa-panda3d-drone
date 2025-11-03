@@ -78,6 +78,8 @@ async def env_control_loop(stop_event: asyncio.Event):
         print("[Visualizer] Waiting for Hakoniwa to start...")
         await asyncio.sleep(1.0)
 
+    #await asyncio.sleep(3.0)  # 少し待つ
+
     while not stop_event.is_set():
         sys.stdout.flush()
         if not await my_sleep_async():
@@ -88,6 +90,7 @@ async def env_control_loop(stop_event: asyncio.Event):
         raw_pose = server_pdu_manager.read_pdu_raw_data('Drone', 'pos')
         pose = pdu_to_py_Twist(raw_pose) if raw_pose else None
         if pose is None:
+            print("[Visualizer] Warning: No pose PDU data")
             continue
 
         rotor_speed = 0.0
@@ -97,7 +100,7 @@ async def env_control_loop(stop_event: asyncio.Event):
             if len(actuator.controls) >= 4:
                 rotor_speed = actuator.controls[0] * 400.0
         else:
-            pass
+            print("[Visualizer] Warning: No actuator PDU data")
         panda3d_pos, panda3d_orientation = Frame.to_panda3d(pose)
         ui_queue.put(("pose", (panda3d_pos, panda3d_orientation, rotor_speed)))
 
@@ -108,7 +111,7 @@ async def env_control_loop(stop_event: asyncio.Event):
                 # UI スレッドへ命令を投げる
                 ui_queue.put(("game_controller", game_ctrl))
         except Exception as e:
-            pass
+            print(f"[Visualizer] Warning reading game controller PDU: {e}")
 
     print("[Visualizer] Environment Control loop finished")
 
@@ -153,7 +156,7 @@ async def rpc_server_task(stop_event: asyncio.Event):
         print("[RPC] Waiting for Hakoniwa to start...")
         await asyncio.sleep(1.0)
 
-
+    await asyncio.sleep(1.0)  # 少し待つ
     services = [
         {
             "service_name": "DroneService/CameraCaptureImage",
