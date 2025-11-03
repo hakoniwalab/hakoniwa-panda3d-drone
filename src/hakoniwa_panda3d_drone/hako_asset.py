@@ -53,6 +53,7 @@ pdu_offset_path = ''
 visualizer_runner: App = None
 server_pdu_manager: ShmPduServiceServerManager = None
 protocol_server: ProtocolServerImmediate = None
+rpc_service_is_ready = False
 
 # Panda3D スレッドへ渡す更新/命令
 ui_queue: SimpleQueue = SimpleQueue()
@@ -72,14 +73,16 @@ async def my_sleep_async():
 
 # ========== 環境制御ループ ==========
 async def env_control_loop(stop_event: asyncio.Event):
-    global server_pdu_manager
+    global server_pdu_manager, rpc_service_is_ready
     print("[Visualizer] Start Environment Control (async)")
     while not is_hakoniwa_running():
         print("[Visualizer] Waiting for Hakoniwa to start...")
         await asyncio.sleep(1.0)
 
-    #await asyncio.sleep(3.0)  # 少し待つ
-
+    while not rpc_service_is_ready:
+        print("[Visualizer] Waiting for RPC service to be ready...")
+        await asyncio.sleep(1.0)
+    print("[Visualizer] RPC service is ready. Starting environment control loop.")
     while not stop_event.is_set():
         sys.stdout.flush()
         if not await my_sleep_async():
@@ -147,7 +150,8 @@ async def handle_camera_capture(req: CameraCaptureImageRequest) -> CameraCapture
         return res
 
 async def rpc_server_task(stop_event: asyncio.Event):
-    global server_pdu_manager, protocol_server
+    global server_pdu_manager, protocol_server, rpc_service_is_ready
+    rpc_service_is_ready = False
     """
     箱庭 RPC の起動・待受けを行うタスク。
     """
@@ -174,12 +178,15 @@ async def rpc_server_task(stop_event: asyncio.Event):
     protocol_server.start_services()
 
     print("[RPC] RPC server is running.")
+    rpc_service_is_ready = True
+    print("[RPC] RPC server is ready to accept requests.")
     sys.stdout.flush()
     # serve() はハンドラマップを受け取って待受
     serve_task = asyncio.create_task(protocol_server.serve({
         "DroneService/CameraCaptureImage": handle_camera_capture,
     }))
     print("[RPC] Service server started for DroneService/CameraCaptureImage")
+
 
     # 停止指示を待つ
     await stop_event.wait()
