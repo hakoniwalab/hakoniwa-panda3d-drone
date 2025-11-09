@@ -56,29 +56,14 @@
       "depends_on": ["drone"]
     },
     {
-      "name": "remote_controller1",
+      "name": "remote_controller",
       "activation_timing": "before_start",
       "command": "${PYTHON_PATH}",
       "args": [
         "-m",
         "rc-custom-srv",
         "../../config/pdudef/webavatar-2.json",
-        "rc_config/ps4-control.json",
-        "--name", "Drone", "--index", "0"
-      ],
-      "cwd": "${HAKO_DRONE_PROJECT_PATH}/drone_api/rc",
-      "depends_on": ["Panda3dSimulator"]
-    },
-    {
-      "name": "remote_controller2",
-      "activation_timing": "before_start",
-      "command": "${PYTHON_PATH}",
-      "args": [
-        "-m",
-        "rc-custom",
-        "../../config/pdudef/webavatar-2.json",
-        "rc_config/ps4-control.json",
-        "--name", "Drone1", "--index", "1"
+        "rc_config/ps4-control.json"
       ],
       "cwd": "${HAKO_DRONE_PROJECT_PATH}/drone_api/rc",
       "depends_on": ["Panda3dSimulator"]
