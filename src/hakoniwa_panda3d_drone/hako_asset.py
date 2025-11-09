@@ -82,6 +82,7 @@ async def env_control_loop(stop_event: asyncio.Event):
     while not rpc_service_is_ready:
         print("[Visualizer] Waiting for RPC service to be ready...")
         await asyncio.sleep(1.0)
+
     print("[Visualizer] RPC service is ready. Starting environment control loop.")
     while not stop_event.is_set():
         sys.stdout.flush()
@@ -90,31 +91,34 @@ async def env_control_loop(stop_event: asyncio.Event):
 
         server_pdu_manager.run_nowait()
 
-        raw_pose = server_pdu_manager.read_pdu_raw_data('Drone', 'pos')
-        pose = pdu_to_py_Twist(raw_pose) if raw_pose else None
-        if pose is None:
-            print("[Visualizer] Warning: No pose PDU data")
-            continue
+        for drone in server_pdu_manager.pdu_config.config_dict.get('robots', []):
+            drone_name = drone.get('name', 'Drone')
+ 
+            raw_pose = server_pdu_manager.read_pdu_raw_data(drone_name, 'pos')
+            pose = pdu_to_py_Twist(raw_pose) if raw_pose else None
+            if pose is None:
+                print("[Visualizer] Warning: No pose PDU data")
+                continue
 
-        rotor_speed = 0.0
-        raw_actuator = server_pdu_manager.read_pdu_raw_data('Drone', 'motor')
-        if raw_actuator:
-            actuator = pdu_to_py_HakoHilActuatorControls(raw_actuator)
-            if len(actuator.controls) >= 4:
-                rotor_speed = actuator.controls[0] * 400.0
-        else:
-            print("[Visualizer] Warning: No actuator PDU data")
-        panda3d_pos, panda3d_orientation = Frame.to_panda3d(pose)
-        ui_queue.put(("pose", (panda3d_pos, panda3d_orientation, rotor_speed)))
+            rotor_speed = 0.0
+            raw_actuator = server_pdu_manager.read_pdu_raw_data(drone_name, 'motor')
+            if raw_actuator:
+                actuator = pdu_to_py_HakoHilActuatorControls(raw_actuator)
+                if len(actuator.controls) >= 4:
+                    rotor_speed = actuator.controls[0] * 400.0
+            else:
+                print("[Visualizer] Warning: No actuator PDU data")
+            panda3d_pos, panda3d_orientation = Frame.to_panda3d(pose)
+            ui_queue.put(("pose", (drone_name, panda3d_pos, panda3d_orientation, rotor_speed)))
 
-        try:
-            raw_game_ctrl = server_pdu_manager.read_pdu_raw_data('Drone', 'hako_cmd_game')
-            game_ctrl = pdu_to_py_GameControllerOperation(raw_game_ctrl) if raw_game_ctrl else None
-            if game_ctrl is not None:
-                # UI スレッドへ命令を投げる
-                ui_queue.put(("game_controller", game_ctrl))
-        except Exception as e:
-            print(f"[Visualizer] Warning reading game controller PDU: {e}")
+            try:
+                raw_game_ctrl = server_pdu_manager.read_pdu_raw_data(drone_name, 'hako_cmd_game')
+                game_ctrl = pdu_to_py_GameControllerOperation(raw_game_ctrl) if raw_game_ctrl else None
+                if game_ctrl is not None:
+                    # UI スレッドへ命令を投げる
+                    ui_queue.put(("game_controller", (drone_name, game_ctrl)))
+            except Exception as e:
+                print(f"[Visualizer] Warning reading game controller PDU: {e}")
 
     print("[Visualizer] Environment Control loop finished")
 
@@ -214,11 +218,11 @@ def panda3d_ui_task(task):
             break
 
         if kind == "pose" and visualizer_runner is not None:
-            pos, orient, rotor_speed = payload
-            visualizer_runner.set_pose_and_rotation(pos, orient, rotor_speed)
+            drone_name, pos, orient, rotor_speed = payload
+            visualizer_runner.set_pose_and_rotation(drone_name, pos, orient, rotor_speed)
         elif kind == "game_controller" and visualizer_runner is not None:
-            game_ctrl: GameControllerOperation = payload
-            visualizer_runner.update_game_controller_ui(game_ctrl)
+            drone_name, game_ctrl = payload
+            visualizer_runner.update_game_controller_ui(drone_name, game_ctrl)
         elif kind == "capture_request":
             # payload: {drone_name, image_type, future}
             drone_name = payload["drone_name"]

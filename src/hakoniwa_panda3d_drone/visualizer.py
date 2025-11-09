@@ -19,6 +19,55 @@ import sys
 print(f"--- Running Panda3D Version: {panda3d.__version__} ---")
 
 class App(ShowBase):
+
+    def build_drone_model(self, config):
+        drone_models = []
+        for drone_cfg in config['drones']:
+            drone_model = self._create_entity_from_config(drone_cfg, copy=True)
+            drone_model.set_purpose('drone')
+
+            if 'rotors' in drone_cfg:
+                for child_config in drone_cfg['rotors']:
+                    child_entity = self._create_entity_from_config(child_config, copy=True)
+                    child_entity.set_purpose('rotor')
+                    drone_model.add_child(child_entity)
+
+            drone_model.np.set_tag('ShadowCaster', 'true')
+
+            # === 前方カメラをドローンに取り付ける ===
+            self.drone_cam = None
+            for cam_config in drone_cfg.get('cameras', []):
+                attach_cam = AttachCamera(
+                    self.loader,
+                    parent=drone_model.np,
+                    aspect2d=self.aspect2d,
+                    name=cam_config.get('name', 'AttachedCam'),
+                    fov=cam_config.get('fov', 70.0),
+                    near=cam_config.get('near', 0.1),
+                    far=cam_config.get('far', 1000.0),
+                    background_color=self.background_color,
+                    model_config=cam_config.get('model', None),
+                )
+                if 'window' in cam_config:
+                    attach_cam.set_display_region(
+                        win=self.win,
+                        sort=cam_config.get('sort', 20),
+                        x=cam_config.get('window', {}).get('x', 0.7),
+                        y=cam_config.get('window', {}).get('y', 0.7),
+                        width=cam_config.get('window', {}).get('width', 0.3),
+                        height=cam_config.get('window', {}).get('height', 0.3)
+                    )
+                pos = cam_config.get('pos', [0, -0.2, 0.05])
+                hpr = cam_config.get('hpr', [0, 0, 0])
+                attach_cam.set_pos(*pos)
+                attach_cam.set_hpr(*hpr)
+                if self.drone_cam is None:
+                    self.drone_cam = attach_cam
+                drone_model.add_child(attach_cam)
+            drone_models.append(drone_model)
+
+        self.drone_models = drone_models
+
     def __init__(self, drone_config_path: str):
         super().__init__()
         self.disableMouse()
@@ -33,14 +82,7 @@ class App(ShowBase):
         with open(drone_config_path, 'r') as f:
             config = json.load(f)
 
-        drone_model = self._create_entity_from_config(config['drones'][0], copy=True)
-        drone_model.set_purpose('drone')
-
-        if 'rotors' in config['drones'][0]:
-            for child_config in config['drones'][0]['rotors']:
-                child_entity = self._create_entity_from_config(child_config, copy=True)
-                child_entity.set_purpose('rotor')
-                drone_model.add_child(child_entity)
+        self.build_drone_model(config)
 
         # --- 照明セットアップ（先に設定） ---
         self.lights = LightRig(self.render, shadows=False)
@@ -57,44 +99,10 @@ class App(ShowBase):
             loader=self.loader,
         )
 
-        self.drone_model = drone_model
-        self.drone_model.np.set_tag('ShadowCaster', 'true')
-
-        # === 前方カメラをドローンに取り付ける ===
-        #self._setup_front_camera()
-        self.drone_cam = None
-        for cam_config in config['drones'][0].get('cameras', []):
-            attach_cam = AttachCamera(
-                self.loader,
-                parent=drone_model.np,
-                aspect2d=self.aspect2d,
-                name=cam_config.get('name', 'AttachedCam'),
-                fov=cam_config.get('fov', 70.0),
-                near=cam_config.get('near', 0.1),
-                far=cam_config.get('far', 1000.0),
-                background_color=self.background_color,
-                model_config=cam_config.get('model', None),
-            )
-            attach_cam.set_display_region(
-                win=self.win,
-                sort=cam_config.get('sort', 20),
-                x=cam_config.get('window', {}).get('x', 0.7),
-                y=cam_config.get('window', {}).get('y', 0.7),
-                width=cam_config.get('window', {}).get('width', 0.3),
-                height=cam_config.get('window', {}).get('height', 0.3)
-            )
-            pos = cam_config.get('pos', [0, -0.2, 0.05])
-            hpr = cam_config.get('hpr', [0, 0, 0])
-            attach_cam.set_pos(*pos)
-            attach_cam.set_hpr(*hpr)
-            if self.drone_cam is None:
-                self.drone_cam = attach_cam
-            self.drone_model.add_child(attach_cam)
-
         sys.stdout.flush()
 
         # --- ここからカメラ ---
-        target = Point3(drone_model.np.getPos(self.render))
+        target = Point3(self.drone_models[0].np.getPos(self.render))
         self.cam_ctrl = OrbitCamera(
             self,
             target=target,
@@ -164,20 +172,22 @@ class App(ShowBase):
             entity._geom_np.setHpr(*config['hpr'])
         return entity
 
-    def set_pose_and_rotation(self, pos: Vec3, hpr: Vec3, rotation_speed: float = 1.0):
-        self.drone_model.set_pos(x = pos.x, y = pos.y, z = pos.z)
-        self.drone_model.set_hpr(h = hpr.x, p = hpr.y, r = hpr.z)
-        index = 0
-        for rotor in self.drone_model.children:
-            if rotor.purpose != 'rotor':
-                continue
-            if index % 2 == 0:
-                rotor.rotate_child_yaw(-rotation_speed)
-            else:
-                rotor.rotate_child_yaw(rotation_speed)
-            index += 1
+    def set_pose_and_rotation(self, drone_name: str, pos: Vec3, hpr: Vec3, rotation_speed: float = 1.0):
+        for drone_model in self.drone_models:
+            if drone_model.name == drone_name:
+                drone_model.set_pos(x=pos.x, y=pos.y, z=pos.z)
+                drone_model.set_hpr(h=hpr.x, p=hpr.y, r=hpr.z)
+                index = 0
+                for rotor in drone_model.children:
+                    if rotor.purpose != 'rotor':
+                        continue
+                    if index % 2 == 0:
+                        rotor.rotate_child_yaw(-rotation_speed)
+                    else:
+                        rotor.rotate_child_yaw(rotation_speed)
+                    index += 1
 
-    def update_game_controller_ui(self, game_ctrl: GameControllerOperation):
+    def update_game_controller_ui(self, drone_name: str, game_ctrl: GameControllerOperation):
         if self.drone_cam is not None:
             #up down drone camera pitch based on buttons: up=11, down=12
             if game_ctrl.button[11]:
@@ -188,7 +198,7 @@ class App(ShowBase):
 
 
     def update_text(self, task):
-        pos = self.drone_model.np.getPos(self.render)
+        pos = self.drone_models[0].np.getPos(self.render)
         self.pos_text.setText(f"x={pos.x:.2f}  y={pos.y:.2f}  z={pos.z:.2f}")
         return task.cont
 

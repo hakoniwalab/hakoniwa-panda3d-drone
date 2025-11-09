@@ -7,6 +7,7 @@ from pathlib import Path
 class RenderEntity:
     """NodePath を持ち、Polygon から受け取った GeomNode をぶら下げる"""
     def __init__(self, parent, name: str = "entity"):
+        self.name = name
         self.np = parent.attachNewNode(name)
         self._geom_np: Optional[NodePath] = None  # 子ジオメトリの NodePath
         self.children = []
