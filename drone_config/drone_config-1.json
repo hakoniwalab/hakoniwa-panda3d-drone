@@ -12,7 +12,7 @@
   ],
   "drones": [
     {
-      "name": "drone_model",
+      "name": "Drone",
       "model": "../models/drone.glb",
       "pos": [0, 0, 0.01],
       "hpr": [180, 180, 0],

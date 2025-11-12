@@ -1,0 +1,77 @@
+{
+  "version": "0.1",
+  "defaults": {
+    "cwd": ".",
+    "stdout": "logs/${asset}.out",
+    "stderr": "logs/${asset}.err",
+    "env": {
+      "prepend": {
+        "lib_path": [
+          "/usr/local/hakoniwa/lib"
+        ],
+        "PATH": ["/usr/local/hakoniwa/bin"] 
+      }
+    },    
+    "start_grace_sec": 1,
+    "delay_sec": 3
+  },
+  "assets": [
+    {
+      "name": "drone",
+      "activation_timing": "before_start",
+      "command": "mac/mac-main_hako_drone_service",
+      "args": [
+        "config/drone/mujoco",
+        "config/pdudef/webavatar.json"
+      ],
+      "cwd": "${HAKO_DRONE_PROJECT_PATH}"
+    },
+    {
+      "name": "environment",
+      "activation_timing": "before_start",
+      "command": "${PYTHON_PATH}",
+      "args": [
+        "-m",
+        "hakoniwa_envsim.envasset",
+        "${HAKO_DRONE_PROJECT_PATH}/config/pdudef/webavatar.json",
+        "20", 
+        "../examples/datasets/simple_room"
+      ],
+      "cwd": "/Users/tmori/project/oss/hakoniwa-envsim/src"
+    },
+    {
+      "name": "Panda3dSimulator",
+      "activation_timing": "before_start",
+      "command": "${PYTHON_PATH}",
+      "args": [
+        "-m",
+        "hakoniwa_panda3d_drone.hako_asset",
+        "${HAKO_PANDA3D_DRONE_PATH}/drone_config/drone_config-1.json",
+        "20",
+        "${HAKO_PANDA3D_DRONE_PATH}/launcher_config/service.json",
+        "${HAKO_DRONE_PROJECT_PATH}/config/pdudef/webavatar.json",
+        "/usr/local/share/hakoniwa/offset"
+      ],
+      "cwd": "${HAKO_PANDA3D_DRONE_PATH}/src",
+      "depends_on": ["drone"]
+    },
+    {
+      "name": "remote_controller",
+      "activation_timing": "before_start",
+      "command": "${PYTHON_PATH}",
+      "args": [
+        "-m",
+        "rc-custom-srv",
+        "../../config/pdudef/webavatar.json",
+        "rc_config/ps4-control.json"
+      ],
+      "cwd": "${HAKO_DRONE_PROJECT_PATH}/drone_api/rc",
+      "depends_on": ["Panda3dSimulator"]
+    }    
+  ],
+  "notify": {
+    "type": "exec",
+    "command": "scripts/notify_on_fail.sh",
+    "args": ["${asset}", "asset_exit", "${timestamp}"]
+  }
+}

@@ -4,6 +4,7 @@ import asyncio
 import threading
 from queue import SimpleQueue
 import sys
+import json
 sys.stdout.reconfigure(line_buffering=True)
 
 import hakopy
@@ -75,6 +76,10 @@ async def my_sleep_async():
 async def env_control_loop(stop_event: asyncio.Event):
     global server_pdu_manager, rpc_service_is_ready
     print("[Visualizer] Start Environment Control (async)")
+
+    drone_config_dict = json.load(open(drone_config_path, 'r'))
+    print(f"[Visualizer] Loaded drone config: {drone_config_path}")
+
     while not is_hakoniwa_running():
         print("[Visualizer] Waiting for Hakoniwa to start...")
         await asyncio.sleep(1.0)
@@ -91,13 +96,13 @@ async def env_control_loop(stop_event: asyncio.Event):
 
         server_pdu_manager.run_nowait()
 
-        for drone in server_pdu_manager.pdu_config.config_dict.get('robots', []):
+        for drone in drone_config_dict['drones']:
             drone_name = drone.get('name', 'Drone')
  
             raw_pose = server_pdu_manager.read_pdu_raw_data(drone_name, 'pos')
             pose = pdu_to_py_Twist(raw_pose) if raw_pose else None
             if pose is None:
-                print("[Visualizer] Warning: No pose PDU data")
+                print("[Visualizer] Warning: No pose PDU data: drone=", drone_name)
                 continue
 
             rotor_speed = 0.0
