@@ -123,7 +123,9 @@ async def env_control_loop(stop_event: asyncio.Event):
                     # UI スレッドへ命令を投げる
                     ui_queue.put(("game_controller", (drone_name, game_ctrl)))
             except Exception as e:
-                print(f"[Visualizer] Warning reading game controller PDU: {e}")
+                #print("[Visualizer] Warning: Exception reading game_controller robot_name:", drone_name)
+                #print(f"[Visualizer] Warning reading game controller PDU: {e}")
+                pass
 
     print("[Visualizer] Environment Control loop finished")
 

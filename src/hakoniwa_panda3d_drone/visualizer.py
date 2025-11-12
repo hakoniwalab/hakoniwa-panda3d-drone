@@ -23,6 +23,8 @@ class App(ShowBase):
     def build_drone_model(self, config):
         drone_models = []
         for drone_cfg in config['drones']:
+            droen_name = drone_cfg.get('name', 'Drone')
+            print(f"[Visualizer] Building drone model: {droen_name}")
             drone_model = self._create_entity_from_config(drone_cfg, copy=True)
             drone_model.set_purpose('drone')
 
@@ -35,7 +37,6 @@ class App(ShowBase):
             drone_model.np.set_tag('ShadowCaster', 'true')
 
             # === 前方カメラをドローンに取り付ける ===
-            self.drone_cam = None
             for cam_config in drone_cfg.get('cameras', []):
                 attach_cam = AttachCamera(
                     self.loader,
@@ -61,8 +62,8 @@ class App(ShowBase):
                 hpr = cam_config.get('hpr', [0, 0, 0])
                 attach_cam.set_pos(*pos)
                 attach_cam.set_hpr(*hpr)
-                if self.drone_cam is None:
-                    self.drone_cam = attach_cam
+                if self.drone_cam is None or self.drone_cam.get(droen_name) is None:
+                    self.drone_cam[droen_name] = attach_cam
                 drone_model.add_child(attach_cam)
             drone_models.append(drone_model)
 
@@ -82,6 +83,7 @@ class App(ShowBase):
         with open(drone_config_path, 'r') as f:
             config = json.load(f)
 
+        self.drone_cam = {}
         self.build_drone_model(config)
 
         # --- 照明セットアップ（先に設定） ---
@@ -122,25 +124,32 @@ class App(ShowBase):
             scale=0.05, fg=(1, 1, 1, 1), align=TextNode.ARight, mayChange=True
         )
         self.taskMgr.add(self.update_text, "update_text_task")
-        self.accept("s", self.snapshot_attach_camera, ["attach_cam.png", 1280, 720])
+        self.active_drone = "Drone"
+        self.accept("s", lambda: self.snapshot_attach_camera(self.active_drone, "cam.png"))
 
-    def snapshot_attach_camera(self, path: str, w: int = 1280, h: int = 720):
-        """次フレームで1回だけキャプチャして保存"""
+    def snapshot_attach_camera(self, drone_name: str, path: str, w: int = 1280, h: int = 720):
         from direct.task import Task
         def _do(task):
-            png = self.drone_cam.capture_png_bytes(self, w, h)  # ← AttachCameraのメソッド（後述）
+            cam = self.drone_cam.get(drone_name)
+            if cam is None:
+                print(f"[snapshot] ERROR: camera for {drone_name} not found")
+                return Task.done
+
+            png = cam.capture_png_bytes(self, w, h)
             with open(path, "wb") as f:
                 f.write(png)
             print(f"[snapshot] saved: {path}")
             return Task.done
+
         self.taskMgr.add(_do, "snapshot_once")
+
 
     def capture_camera(self, drone_name: str, image_type: str, w: int = 1280, h: int = 720) -> bytes:
         """
         カメラ画像をバイト列で取得。
         image_type: "png" | "jpeg" などを想定
         """
-        if self.drone_cam is None:
+        if self.drone_cam is None or self.drone_cam.get(drone_name) is None:
             # 空画像を返す／例外を投げる等、方針に合わせて
             # ここでは例外で返して RPC 側でメッセージにするのがわかりやすい
             raise RuntimeError("Attached camera is not initialized")
@@ -148,11 +157,10 @@ class App(ShowBase):
         # AttachCamera 側に jpeg 版があるなら使う。なければ png を共通化でもOK
         itype = (image_type or "png").lower()
         if itype in ("jpg", "jpeg") and hasattr(self.drone_cam, "capture_jpeg_bytes"):
-            return self.drone_cam.capture_jpeg_bytes(self, w, h)
+            return self.drone_cam[drone_name].capture_jpeg_bytes(self, w, h)
 
         # 既存の png をデフォルトに
-        return self.drone_cam.capture_png_bytes(self, w, h)
-
+        return self.drone_cam[drone_name].capture_png_bytes(self, w, h)
 
     def _resolve_model_path(self, path: str) -> str:
         p = Path(path)
@@ -188,13 +196,13 @@ class App(ShowBase):
                     index += 1
 
     def update_game_controller_ui(self, drone_name: str, game_ctrl: GameControllerOperation):
-        if self.drone_cam is not None:
+        if self.drone_cam is not None and self.drone_cam.get(drone_name) is not None:
             #up down drone camera pitch based on buttons: up=11, down=12
             if game_ctrl.button[11]:
-                self.drone_cam.rotate_pitch(1.0)
+                self.drone_cam[drone_name].rotate_pitch(1.0)
             if game_ctrl.button[12]:
-                self.drone_cam.rotate_pitch(-1.0)
-        #print(f"Game Controller State: {game_ctrl}")
+                self.drone_cam[drone_name].rotate_pitch(-1.0)
+        #print(f"Game Controller State: {drone_name} {game_ctrl}")
 
 
     def update_text(self, task):
