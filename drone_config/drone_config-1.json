@@ -2,9 +2,9 @@
   "environments": [
     {
       "name": "town",
-      "model": "../models/medieval_town.glb",
-      "pos": [0, 0, -0.02],
-      "hpr": [0, 90, 0],
+      "model": "/Users/tmori/Downloads/13113_shibuya-ku_pref_2023_citygml_2_op.glb",
+      "pos": [0, 0, -17.4],
+      "hpr": [0, 90, 180],
       "scale": 1.0,
       "cache": true,
       "copy": false
