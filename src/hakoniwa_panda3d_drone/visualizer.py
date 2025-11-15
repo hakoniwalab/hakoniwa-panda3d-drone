@@ -15,6 +15,7 @@ from hakoniwa_panda3d_drone.core.environment import EnvironmentEntity
 from hakoniwa_pdu.pdu_msgs.hako_msgs.pdu_pytype_GameControllerOperation import GameControllerOperation
 
 import sys
+import argparse
 
 print(f"--- Running Panda3D Version: {panda3d.__version__} ---")
 
@@ -215,4 +216,23 @@ class App(ShowBase):
         return task.cont
 
 if __name__ == "__main__":
-    App().run()
+    parser = argparse.ArgumentParser(description="Panda3D Drone Visualizer")
+    parser.add_argument(
+        "--config",
+        type=str,
+        default="../drone_config/drone_config-1.json",
+        help="Path to the drone configuration JSON file."
+    )
+    args = parser.parse_args()
+    
+    # Resolve the path relative to the current working directory if it's not absolute
+    config_path = Path(args.config)
+    if not config_path.is_absolute():
+        config_path = Path.cwd() / config_path
+    config_path = config_path.resolve()
+
+    if not config_path.exists():
+        print(f"Error: Configuration file not found at {config_path}")
+        sys.exit(1)
+
+    App(str(config_path)).run()
