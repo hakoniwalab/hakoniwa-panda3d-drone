@@ -2,6 +2,7 @@ from typing import Optional, Tuple
 from pathlib import Path
 from panda3d.core import NodePath, Point3
 from hakoniwa_panda3d_drone.primitive.render import RenderEntity
+from hakoniwa_panda3d_drone.primitive import mjcf_building
 
 class EnvironmentEntity(RenderEntity):
     def __init__(
@@ -18,6 +19,7 @@ class EnvironmentEntity(RenderEntity):
     ):
         # RenderEntity は (render, name) で初期化
         super().__init__(render, name)
+        self.building_renders: list[RenderEntity] = []
 
         # loader は ShowBase.loader を使う（明示渡しがなければ base.loader）
         if loader is None:
@@ -30,20 +32,27 @@ class EnvironmentEntity(RenderEntity):
         if not p.is_absolute():
             p = (Path.cwd() / p).resolve()
 
-        # モデルロード
-        self.load_model(loader, str(p), copy=copy)
-
-        # 表裏両面（屋内モデル対策）
-        self.np.setTwoSided(True)
+        # ファイルタイプに応じてロード処理を分岐
+        if p.suffix.lower() == '.xml':
+            # MJCFから建物をロード
+            building_data_list = mjcf_building.load_buildings_from_mjcf(str(p))
+            self.building_renders = mjcf_building.create_building_renders(self.np, building_data_list)
+        else:
+            # 通常のモデルをロード
+            self.load_model(loader, str(p), copy=copy)
+            # 表裏両面（屋内モデル対策）
+            self.np.setTwoSided(True)
 
         # 姿勢・スケール
         if scale is not None:
             self.np.setScale(scale)
         if pos is not None:
             self.set_pos(*pos)
-        if hpr is not None and hasattr(self, "_geom_np"):
-            # RenderEntity のジオムノードに HPR を適用する仕様に合わせる
-            self._geom_np.setHpr(*hpr)
+        if hpr is not None:
+            # .xml の場合は全体に、それ以外はジオメトリに適用
+            target_np = self.np if p.suffix.lower() == '.xml' else self._geom_np
+            if target_np:
+                target_np.setHpr(*hpr)
 
         # 大きすぎ/小さすぎ補正
         mn, mx = self.np.getTightBounds()

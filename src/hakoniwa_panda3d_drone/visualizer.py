@@ -89,17 +89,20 @@ class App(ShowBase):
         # --- 照明セットアップ（先に設定） ---
         self.lights = LightRig(self.render, shadows=False)
 
-        self.env = EnvironmentEntity(
-            render=self.render,
-            name=config['environments'][0]['name'],
-            model_path=config['environments'][0]['model'],
-            pos=config['environments'][0]['pos'],
-            hpr=config['environments'][0]['hpr'],
-            scale=config['environments'][0]['scale'],
-            cache=config['environments'][0].get('cache', False),
-            copy=config['environments'][0].get('copy', False),
-            loader=self.loader,
-        )
+        self.envs = []
+        for env_config in config.get('environments', []):
+            env = EnvironmentEntity(
+                render=self.render,
+                name=env_config.get('name', 'environment'),
+                model_path=env_config['model'],
+                pos=env_config.get('pos'),
+                hpr=env_config.get('hpr'),
+                scale=env_config.get('scale', 1.0),
+                cache=env_config.get('cache', False),
+                copy=env_config.get('copy', False),
+                loader=self.loader,
+            )
+            self.envs.append(env)
 
         sys.stdout.flush()
 
@@ -208,6 +211,7 @@ class App(ShowBase):
     def update_text(self, task):
         pos = self.drone_models[0].np.getPos(self.render)
         self.pos_text.setText(f"x={pos.x:.2f}  y={pos.y:.2f}  z={pos.z:.2f}")
+        self.cam_ctrl.set_target(pos)
         return task.cont
 
 if __name__ == "__main__":

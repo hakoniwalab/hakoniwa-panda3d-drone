@@ -36,13 +36,13 @@ class Polygon(ABC):
         return node
 
 class Cube(Polygon):
-    def __init__(self, size: float = 0.2, vertex_colors: List[Color] | None = None):
+    def __init__(self, size: Tuple[float, float, float] = (0.2, 0.2, 0.2), vertex_colors: List[Color] | None = None):
         self.size = size
-        s = size * 0.5
+        sx, sy, sz = size[0] * 0.5, size[1] * 0.5, size[2] * 0.5
         # 8頂点
         self.vtx: List[Vec3] = [
-            Vec3(-s, -s, -s), Vec3( s, -s, -s), Vec3( s,  s, -s), Vec3(-s,  s, -s),
-            Vec3(-s, -s,  s), Vec3( s, -s,  s), Vec3( s,  s,  s), Vec3(-s,  s,  s),
+            Vec3(-sx, -sy, -sz), Vec3( sx, -sy, -sz), Vec3( sx,  sy, -sz), Vec3(-sx,  sy, -sz),
+            Vec3(-sx, -sy,  sz), Vec3( sx, -sy,  sz), Vec3( sx,  sy,  sz), Vec3(-sx,  sy,  sz),
         ]
         # 12三角形（6面×2）
         self.tris: List[Tuple[int,int,int]] = [

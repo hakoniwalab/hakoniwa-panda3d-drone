@@ -46,7 +46,7 @@
       "args": [
         "-m",
         "hakoniwa_panda3d_drone.hako_asset",
-        "${HAKO_PANDA3D_DRONE_PATH}/drone_config/drone_config-1.json",
+        "${HAKO_PANDA3D_DRONE_PATH}/drone_config/drone_config-mjcf-1.json",
         "20",
         "${HAKO_PANDA3D_DRONE_PATH}/launcher_config/service.json",
         "${HAKO_DRONE_PROJECT_PATH}/config/pdudef/webavatar.json",
