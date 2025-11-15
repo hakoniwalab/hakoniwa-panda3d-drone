@@ -1,15 +1,6 @@
 {
   "environments": [
     {
-      "name": "town-mjcf",
-      "model": "../drone_config/drone.xml",
-      "pos": [0, 0, 0],
-      "hpr": [180, 0, 0],
-      "scale": 1.0,
-      "cache": true,
-      "copy": false
-    },
-    {
       "name": "town",
       "model": "/Users/tmori/Downloads/13113_shibuya-ku_pref_2023_citygml_2_op.glb",
       "pos": [0, 0, -17.4],
