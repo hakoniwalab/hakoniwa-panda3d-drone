@@ -23,7 +23,7 @@
       "args": [
         "127.0.0.1",
         "4560",
-        "config/drone/mujoco",
+        "config/drone/mujoco-1",
         "config/pdudef/webavatar.json"
       ],
       "cwd": "${HAKO_DRONE_PROJECT_PATH}"
@@ -56,7 +56,30 @@
       ],
       "cwd": "${HAKO_PANDA3D_DRONE_PATH}/src",
       "depends_on": ["drone"]
+    },
+    {
+      "name": "pymavlink_test",
+      "activation_timing": "after_start",
+      "command": "python3",
+      "args": [
+            "-m", "env_test",
+            "--name","Drone",
+            "--connect", "udp:127.0.0.1:14540",
+            "--type","px4",
+            "--config-path","../../config/pdudef/webavatar.json",
+            "--mission-file", "mission.json"
+      ],
+      "cwd": "${HAKO_DRONE_PROJECT_PATH}/drone_api/pymavlink",
+      "env": {
+        "prepend": {
+          "PYTHONPATH": [
+            "${HAKO_DRONE_PROJECT_PATH}/drone_api/pymavlink"
+          ]
+        }
+      },
+      "depends_on": ["Panda3dSimulator"]
     }
+
   ],
   "notify": {
     "type": "exec",
