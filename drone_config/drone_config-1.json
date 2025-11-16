@@ -2,7 +2,7 @@
   "environments": [
     {
       "name": "town",
-      "model": "/Users/tmori/Downloads/13113_shibuya-ku_pref_2023_citygml_2_op.glb",
+      "model": "../models/13113_shibuya-ku_pref_2023_citygml_2_op.glb",
       "pos": [0, 0, -17.4],
       "hpr": [0, 90, 180],
       "scale": 1.0,
