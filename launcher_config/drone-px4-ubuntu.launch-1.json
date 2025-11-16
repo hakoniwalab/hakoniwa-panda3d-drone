@@ -39,7 +39,7 @@
         "20", 
         "../examples/datasets/simple_room"
       ],
-      "cwd": "/home/tmori/hakoniwa/hakoniwa-envsim/src"
+      "cwd": "${HAKO_ENVSIM_PATH}/src"
     },
     {
       "name": "Panda3dSimulator",
