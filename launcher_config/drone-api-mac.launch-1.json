@@ -21,26 +21,24 @@
       "activation_timing": "before_start",
       "command": "mac/mac-main_hako_drone_service",
       "args": [
-        "config/drone/mujoco-api",
+        "config/drone/mujoco-shibuya-api",
         "config/pdudef/webavatar.json"
       ],
       "cwd": "${HAKO_DRONE_PROJECT_PATH}",
       "delay_sec": 5
     },
     {
-      "name": "Panda3dSimulator",
+      "name": "environment",
       "activation_timing": "before_start",
       "command": "${PYTHON_PATH}",
       "args": [
         "-m",
-        "hakoniwa_panda3d_drone.hako_asset",
-        "${HAKO_PANDA3D_DRONE_PATH}/drone_config/drone_config-mjcf-1.json",
-        "20",
-        "${HAKO_PANDA3D_DRONE_PATH}/launcher_config/service.json",
+        "hakoniwa_envsim.envasset",
         "${HAKO_DRONE_PROJECT_PATH}/config/pdudef/webavatar.json",
-        "/usr/local/share/hakoniwa/offset"
+        "20", 
+        "../examples/datasets/simple_room"
       ],
-      "cwd": "${HAKO_PANDA3D_DRONE_PATH}/src",
+      "cwd": "/Users/tmori/project/oss/hakoniwa-envsim/src",
       "depends_on": ["drone"]
     },
     {
@@ -54,7 +52,7 @@
         "--mission-file", "mission.json"
       ],
       "cwd": "${HAKO_DRONE_PROJECT_PATH}/drone_api/pymavlink",
-      "depends_on": ["Panda3dSimulator"]
+      "depends_on": ["environment"]
     },
     {
       "name": "webserver",
@@ -64,7 +62,7 @@
                "--config_path","${HAKO_DRONE_PROJECT_PATH}/config/pdudef/webavatar.json",
                "--delta_time_usec","20000"],
       "cwd": "/Users/tmori/project/oss/hakoniwa-webserver",
-      "depends_on": ["Panda3dSimulator"]
+      "depends_on": ["api_control"]
     }    
   ],
   "notify": {

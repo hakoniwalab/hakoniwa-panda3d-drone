@@ -21,7 +21,7 @@
       "activation_timing": "before_start",
       "command": "mac/mac-main_hako_drone_service",
       "args": [
-        "config/drone/mujoco",
+        "config/drone/mujoco-shibuya",
         "config/pdudef/webavatar.json"
       ],
       "cwd": "${HAKO_DRONE_PROJECT_PATH}",
