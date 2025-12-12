@@ -21,7 +21,7 @@
       "activation_timing": "before_start",
       "command": "mac/mac-main_hako_drone_service",
       "args": [
-        "config/drone/mujoco-2",
+        "config/drone/mujoco-api-2",
         "config/pdudef/webavatar-2.json"
       ],
       "cwd": "${HAKO_DRONE_PROJECT_PATH}"
@@ -56,35 +56,33 @@
       "depends_on": ["drone"]
     },
     {
-      "name": "remote_controller-1",
-      "activation_timing": "before_start",
+      "name": "api_control-1",
+      "activation_timing": "after_start",
       "command": "${PYTHON_PATH}",
       "args": [
         "-m",
-        "rc-custom-srv",
-        "../../config/pdudef/webavatar-2.json",
-        "rc_config/ps4-control.json",
+        "env_api_test",
         "--name", "Drone",
-        "--index", "0"
+        "--config-path", "../../config/pdudef/webavatar-2.json",
+        "--mission-file", "mission.json"
       ],
-      "cwd": "${HAKO_DRONE_PROJECT_PATH}/drone_api/rc",
-      "depends_on": ["Panda3dSimulator"]
+      "cwd": "${HAKO_DRONE_PROJECT_PATH}/drone_api/pymavlink",
+      "depends_on": ["environment"]
     },
     {
-      "name": "remote_controller-2",
-      "activation_timing": "before_start",
+      "name": "api_control-2",
+      "activation_timing": "after_start",
       "command": "${PYTHON_PATH}",
       "args": [
         "-m",
-        "rc-custom-srv",
-        "../../config/pdudef/webavatar-2.json",
-        "rc_config/ps4-control.json",
+        "env_api_test",
         "--name", "Drone1",
-        "--index", "1"
+        "--config-path", "../../config/pdudef/webavatar-2.json",
+        "--mission-file", "mission.json"
       ],
-      "cwd": "${HAKO_DRONE_PROJECT_PATH}/drone_api/rc",
-      "depends_on": ["Panda3dSimulator"]
-    }        
+      "cwd": "${HAKO_DRONE_PROJECT_PATH}/drone_api/pymavlink",
+      "depends_on": ["environment"]
+    }
   ],
   "notify": {
     "type": "exec",
